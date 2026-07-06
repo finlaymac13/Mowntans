@@ -3,12 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Map of Scotland</title>
+  <title>Scotland Travel Map</title>
 
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet/dist/leaflet.css"
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
   <style>
     body {
@@ -25,18 +22,41 @@
     }
 
     #map {
-      height: 85vh;
+      height: 70vh;
       width: 100%;
+    }
+
+    .tracker {
+      padding: 20px;
+      background: white;
+    }
+
+    .city {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0;
+      font-size: 18px;
+    }
+
+    .visited {
+      color: green;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <header>
     <h1>Geographical Map of Scotland</h1>
-    <p>Interactive map showing major Scottish locations</p>
+    <p>Track which Scottish cities and locations you have visited</p>
   </header>
 
   <div id="map"></div>
+
+  <section class="tracker">
+    <h2>Visited Tracker</h2>
+    <div id="cityList"></div>
+  </section>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
@@ -48,21 +68,53 @@
     }).addTo(map);
 
     const places = [
-      ["Edinburgh", 55.9533, -3.1883],
-      ["Glasgow", 55.8642, -4.2518],
-      ["Aberdeen", 57.1497, -2.0943],
-      ["Inverness", 57.4778, -4.2247],
-      ["Dundee", 56.4620, -2.9707],
-      ["Stirling", 56.1165, -3.9369],
-      ["Isle of Skye", 57.5359, -6.2263],
-      ["Loch Ness", 57.3229, -4.4244]
+      { name: "Edinburgh", lat: 55.9533, lng: -3.1883 },
+      { name: "Glasgow", lat: 55.8642, lng: -4.2518 },
+      { name: "Aberdeen", lat: 57.1497, lng: -2.0943 },
+      { name: "Inverness", lat: 57.4778, lng: -4.2247 },
+      { name: "Dundee", lat: 56.4620, lng: -2.9707 },
+      { name: "Stirling", lat: 56.1165, lng: -3.9369 },
+      { name: "Perth", lat: 56.3969, lng: -3.4370 },
+      { name: "Isle of Skye", lat: 57.5359, lng: -6.2263 },
+      { name: "Loch Ness", lat: 57.3229, lng: -4.4244 }
     ];
 
+    const cityList = document.getElementById("cityList");
+    const visitedPlaces = JSON.parse(localStorage.getItem("visitedPlaces")) || {};
+
     places.forEach(place => {
-      L.marker([place[1], place[2]])
-        .addTo(map)
-        .bindPopup(`<strong>${place[0]}</strong>`);
+      const marker = L.marker([place.lat, place.lng]).addTo(map);
+
+      const isVisited = visitedPlaces[place.name] === true;
+
+      marker.bindPopup(`
+        <strong>${place.name}</strong><br>
+        <label>
+          <input type="checkbox" onchange="toggleVisited('${place.name}', this.checked)" ${isVisited ? "checked" : ""}>
+          I have been here
+        </label>
+      `);
+
+      const cityDiv = document.createElement("div");
+      cityDiv.className = "city";
+      cityDiv.innerHTML = `
+        <input type="checkbox" 
+               id="${place.name}" 
+               ${isVisited ? "checked" : ""} 
+               onchange="toggleVisited('${place.name}', this.checked)">
+        <label for="${place.name}" class="${isVisited ? "visited" : ""}">
+          ${place.name}
+        </label>
+      `;
+
+      cityList.appendChild(cityDiv);
     });
+
+    function toggleVisited(placeName, checked) {
+      visitedPlaces[placeName] = checked;
+      localStorage.setItem("visitedPlaces", JSON.stringify(visitedPlaces));
+      location.reload();
+    }
   </script>
 </body>
 </html>
