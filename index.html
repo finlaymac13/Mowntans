@@ -60,61 +60,85 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-  <script>
-    const map = L.map("map").setView([56.4907, -4.2026], 6);
+<script>
+const map = L.map("map").setView([56.4907, -4.2026], 6);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap contributors"
-    }).addTo(map);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors"
+}).addTo(map);
 
-    const places = [
-      { name: "Edinburgh", lat: 55.9533, lng: -3.1883 },
-      { name: "Glasgow", lat: 55.8642, lng: -4.2518 },
-      { name: "Aberdeen", lat: 57.1497, lng: -2.0943 },
-      { name: "Inverness", lat: 57.4778, lng: -4.2247 },
-      { name: "Dundee", lat: 56.4620, lng: -2.9707 },
-      { name: "Stirling", lat: 56.1165, lng: -3.9369 },
-      { name: "Perth", lat: 56.3969, lng: -3.4370 },
-      { name: "Isle of Skye", lat: 57.5359, lng: -6.2263 },
-      { name: "Loch Ness", lat: 57.3229, lng: -4.4244 }
-    ];
+const visitedPlaces = JSON.parse(localStorage.getItem("visitedPlaces")) || {};
 
-    const cityList = document.getElementById("cityList");
-    const visitedPlaces = JSON.parse(localStorage.getItem("visitedPlaces")) || {};
+const places = [
+    { name: "Edinburgh", lat: 55.9533, lng: -3.1883 },
+    { name: "Glasgow", lat: 55.8642, lng: -4.2518 },
+    { name: "Aberdeen", lat: 57.1497, lng: -2.0943 },
+    { name: "Inverness", lat: 57.4778, lng: -4.2247 },
+    { name: "Dundee", lat: 56.4620, lng: -2.9707 },
+    { name: "Stirling", lat: 56.1165, lng: -3.9369 },
+    { name: "Perth", lat: 56.3969, lng: -3.4370 },
+    { name: "Isle of Skye", lat: 57.5359, lng: -6.2263 },
+    { name: "Loch Ness", lat: 57.3229, lng: -4.4244 }
+];
 
-    places.forEach(place => {
-      const marker = L.marker([place.lat, place.lng]).addTo(map);
+// Marker Icons
+const blueIcon = new L.Icon({
+    iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
+    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
 
-      const isVisited = visitedPlaces[place.name] === true;
+const redIcon = new L.Icon({
+    iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
 
-      marker.bindPopup(`
+const cityList = document.getElementById("cityList");
+
+places.forEach(place => {
+
+    const marker = L.marker(
+        [place.lat, place.lng],
+        {
+            icon: visitedPlaces[place.name] ? redIcon : blueIcon
+        }
+    ).addTo(map);
+
+    marker.bindPopup(`
         <strong>${place.name}</strong><br>
         <label>
-          <input type="checkbox" onchange="toggleVisited('${place.name}', this.checked)" ${isVisited ? "checked" : ""}>
-          I have been here
+            <input type="checkbox"
+                ${visitedPlaces[place.name] ? "checked" : ""}
+                onchange="toggleVisited('${place.name}', this.checked)">
+            I've visited here
         </label>
-      `);
+    `);
 
-      const cityDiv = document.createElement("div");
-      cityDiv.className = "city";
-      cityDiv.innerHTML = `
-        <input type="checkbox" 
-               id="${place.name}" 
-               ${isVisited ? "checked" : ""} 
-               onchange="toggleVisited('${place.name}', this.checked)">
-        <label for="${place.name}" class="${isVisited ? "visited" : ""}">
-          ${place.name}
+    const div = document.createElement("div");
+    div.className = "city";
+    div.innerHTML = `
+        <input type="checkbox"
+            ${visitedPlaces[place.name] ? "checked" : ""}
+            onchange="toggleVisited('${place.name}', this.checked)">
+        <label style="color:${visitedPlaces[place.name] ? "red" : "black"};font-weight:bold;">
+            ${place.name}
         </label>
-      `;
+    `;
+    cityList.appendChild(div);
+});
 
-      cityList.appendChild(cityDiv);
-    });
-
-    function toggleVisited(placeName, checked) {
-      visitedPlaces[placeName] = checked;
-      localStorage.setItem("visitedPlaces", JSON.stringify(visitedPlaces));
-      location.reload();
-    }
-  </script>
+function toggleVisited(place, visited) {
+    visitedPlaces[place] = visited;
+    localStorage.setItem("visitedPlaces", JSON.stringify(visitedPlaces));
+    location.reload();
+}
+</script>
 </body>
 </html>
